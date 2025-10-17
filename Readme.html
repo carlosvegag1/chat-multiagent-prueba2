@@ -1,4 +1,4 @@
-🚀 Chat Multi-Agent Travel
+# 🚀 Chat Multi-Agent Travel
 
 Proyecto listo para ejecutar con **Docker** o en local.  
 Incluye un **backend FastAPI**, un **frontend Next.js** y **4 micro-servicios MCP** (vuelos, hoteles, destinos y cálculo).
@@ -21,12 +21,12 @@ Incluye un **backend FastAPI**, un **frontend Next.js** y **4 micro-servicios MC
 1. Copia `.env.example` a `.env` en la **raíz** del proyecto.  
 2. Rellena las variables que tengas:
 
-   ```bash
-   OPENAI_API_KEY=sk-...
-   AMADEUS_API_KEY=...
-   AMADEUS_API_SECRET=...
-   WEATHER_API_KEY=...
-   ```
+```bash
+OPENAI_API_KEY=sk-...
+AMADEUS_API_KEY=...
+AMADEUS_API_SECRET=...
+WEATHER_API_KEY=...
+```
 
 El `docker-compose.yml` inyecta estas variables automáticamente si existen,  
 pero **no son obligatorias** para arrancar.
@@ -41,14 +41,14 @@ docker compose up -d --build
 
 **Servicios expuestos:**
 
-| Servicio     | URL |
-|---------------|-----|
+| Servicio | URL |
+|----------|-----|
 | Frontend | [http://127.0.0.1:3000](http://127.0.0.1:3000) |
 | Backend (Swagger) | [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) |
-| Calc | [8770](http://127.0.0.1:8770/docs) |
-| Flights | [8771](http://127.0.0.1:8771/docs) |
-| Hotels | [8772](http://127.0.0.1:8772/docs) |
-| Destinations | [8773](http://127.0.0.1:8773/docs) |
+| Calc | [http://127.0.0.1:8770/docs](http://127.0.0.1:8770/docs) |
+| Flights | [http://127.0.0.1:8771/docs](http://127.0.0.1:8771/docs) |
+| Hotels | [http://127.0.0.1:8772/docs](http://127.0.0.1:8772/docs) |
+| Destinations | [http://127.0.0.1:8773/docs](http://127.0.0.1:8773/docs) |
 
 ---
 
@@ -120,16 +120,19 @@ docker compose logs backend | findstr /I "ERROR FALLBACK connect timeout refused
 
 ## 🧰 7) Problemas típicos y solución rápida
 
-- ❌ **El backend intenta llamar a `127.0.0.1` desde Docker**
-  - Este repo ya trae agentes con defaults a `flights:`, `destinations:`, `hotels:`.
-  - Comprueba en logs del backend que veas mensajes como:
-    ```
-    DestinationAgent conectado a: http://destinations:8773
-    FlightAgent conectado a: http://flights:8771
-    ```
+**❌ El backend intenta llamar a `127.0.0.1` desde Docker**
 
-- ⚠️ **Aviso: `WEATHER_API_KEY` no definida**
-  - Es opcional. Si quieres quitar el warning, añade la clave en tu `.env`.
+Este repo ya trae agentes con defaults a `flights:`, `destinations:`, `hotels:`.  
+Comprueba en logs del backend que veas mensajes como:
+
+```
+DestinationAgent conectado a: http://destinations:8773
+FlightAgent conectado a: http://flights:8771
+```
+
+**⚠️ Aviso: `WEATHER_API_KEY` no definida**
+
+Es opcional. Si quieres quitar el warning, añade la clave en tu `.env`.
 
 ---
 
@@ -139,19 +142,17 @@ docker compose logs backend | findstr /I "ERROR FALLBACK connect timeout refused
 2. Crea `backend/.env` apuntando a `http://localhost:877x`.  
 3. Instala dependencias y ejecuta:
 
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   uvicorn main:app --host 0.0.0.0 --port 8000
-   ```
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8000
+```
 
 ---
 
 Hecho con ❤️ para que lo arranques y pruebes en minutos.
 
----
-
 ### 📘 Consejo adicional
-> Si quieres que este README se vea perfecto en GitHub, guárdalo como `README.md` en la raíz del repositorio.  
-> GitHub renderiza automáticamente enlaces, tablas y bloques de código como en este ejemplo.
 
+Si quieres que este README se vea perfecto en GitHub, guárdalo como `README.md` en la raíz del repositorio.  
+GitHub renderiza automáticamente enlaces, tablas y bloques de código como en este ejemplo.
