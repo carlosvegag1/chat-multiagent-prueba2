@@ -1,151 +1,156 @@
-<h1>🧠 Sistema Multiagente para la Gestión de Viajes</h1>
+# 🚀 Chat Multi-Agent Travel
 
-<p>
-Este proyecto es un prototipo exploratorio para un <strong>Trabajo de Fin de Máster (TFM)</strong> cuyo objetivo es demostrar cómo un conjunto de agentes inteligentes pueden colaborar para facilitar la organización integral de viajes. La propuesta se basa en la arquitectura de <strong>servidores MCP (Model-Context Protocol)</strong> del Agent Development Kit (ADK) de Google, que permite conectar agentes con servicios externos de forma estandarizada.
-</p>
+Proyecto listo para ejecutar con **Docker** o en local.  
+Incluye un **backend FastAPI**, un **frontend Next.js** y **4 micro-servicios MCP** (vuelos, hoteles, destinos y cálculo).
 
-<hr>
+---
 
-<h2>¿Qué hace este prototipo?</h2>
+## 🧩 1) Requisitos
 
-<p>El sistema consta de dos componentes principales:</p>
+- Windows / macOS / Linux con [Docker Desktop](https://www.docker.com/products/docker-desktop)  
+- (Opcional) Claves reales:
+  - `OPENAI_API_KEY`
+  - `AMADEUS_API_KEY`
+  - `AMADEUS_API_SECRET`
+  - `WEATHER_API_KEY`
 
-<ol>
-  <li><strong>Agente Notion:</strong> Un agente conversacional que se ejecuta sobre el ADK. Su función es interactuar con Notion a través de su servidor MCP para crear páginas y bloques de contenido. El agente está configurado para ser proactivo y aprovechar la información ya disponible sin pedir datos redundantes al usuario.</li>
-  <li><strong>Servidor MCP de Tripadvisor:</strong> Un microservidor escrito en Python que envuelve la <em>Tripadvisor Content API</em> como herramientas MCP. Permite buscar lugares, consultar detalles, leer reseñas y obtener fotografías a partir de una clave de API. El servidor se ejecuta mediante el transporte <code>stdio</code> para poder ser invocado como herramienta desde el ADK.</li>
-</ol>
+---
 
-<p>La combinación de ambos componentes permite, por ejemplo, realizar una búsqueda en Tripadvisor desde el agente y almacenar el resultado como un bloque estructurado en Notion. Este flujo demuestra cómo diferentes servicios pueden orquestarse de manera coherente dentro de un sistema multiagente.</p>
+## ⚙️ 2) Configura tus claves (opcional pero recomendado)
 
-<hr>
+1. Copia `.env.example` a `.env` en la **raíz** del proyecto.  
+2. Rellena las variables que tengas:
 
-<h2>🧩 Requisitos</h2>
+   ```bash
+   OPENAI_API_KEY=sk-...
+   AMADEUS_API_KEY=...
+   AMADEUS_API_SECRET=...
+   WEATHER_API_KEY=...
+   ```
 
-<p>Para ejecutar el prototipo necesitarás:</p>
+El `docker-compose.yml` inyecta estas variables automáticamente si existen,  
+pero **no son obligatorias** para arrancar.
 
-<ul>
-  <li><strong>Python 3.9</strong> o superior y <strong>Node.js</strong> instalados en tu equipo.</li>
-  <li>Una clave de API de <strong>Tripadvisor Content API</strong> (solicítala en <a href="https://developer-tripadvisor.com/" target="_blank">Tripadvisor for Developers</a>).</li>
-  <li>Un token de acceso de <strong>Notion</strong> (clave <code>NOTION_API_KEY</code> o <code>NOTION_TOKEN</code>), que puedes obtener en <a href="https://www.notion.so/my-integrations" target="_blank">Notion Integrations</a>.</li>
-  <li>Acceso a Internet para realizar llamadas a las APIs.</li>
-</ul>
+---
 
-<h3>Instalación de dependencias</h3>
+## 🚢 3) Arranque súper rápido
 
-<p>Dentro del repositorio se utilizan las siguientes bibliotecas externas:</p>
+```bash
+docker compose up -d --build
+```
 
-<ul>
-  <li><code>google-adk</code> y <code>fastmcp</code> — para construir agentes y servidores MCP.</li>
-  <li><code>httpx</code> — para realizar peticiones HTTP asíncronas.</li>
-  <li><code>python-dotenv</code> — para cargar variables de entorno.</li>
-</ul>
+**Servicios expuestos:**
 
-<p>Para instalarlas puedes crear un entorno virtual (opcional) y ejecutar:</p>
+| Servicio     | URL |
+|---------------|-----|
+| Frontend | [http://127.0.0.1:3000](http://127.0.0.1:3000) |
+| Backend (Swagger) | [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) |
+| Calc | [8770](http://127.0.0.1:8770/docs) |
+| Flights | [8771](http://127.0.0.1:8771/docs) |
+| Hotels | [8772](http://127.0.0.1:8772/docs) |
+| Destinations | [8773](http://127.0.0.1:8773/docs) |
 
-<pre>python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt</pre>
+---
 
-<blockquote>
-<strong>Nota:</strong> Si no existe un fichero <code>requirements.txt</code>, instala manualmente las dependencias:<br>
-<code>pip install google-adk fastmcp httpx python-dotenv</code>
-</blockquote>
+## 🧠 4) Pruebas de salud
 
-<hr>
+**Esperado:** `HTTP/1.1 200 OK`
 
-<h2>⚙️ Configuración</h2>
+```bash
+curl -I http://127.0.0.1:8770/docs
+curl -I http://127.0.0.1:8771/docs
+curl -I http://127.0.0.1:8772/docs
+curl -I http://127.0.0.1:8773/docs
+curl -I http://127.0.0.1:8000/docs
+curl -I http://127.0.0.1:3000
+```
 
-<ol>
-  <li><strong>Clona</strong> este repositorio:</li>
-</ol>
+---
 
-<pre>git clone https://github.com/usuario/sistema-viajes-multiagente.git
-cd sistema-viajes-multiagente</pre>
+## 💬 5) Probar el chat por API
 
-<ol start="2">
-  <li><strong>Crea un archivo <code>.env</code></strong> en la raíz del proyecto con tus claves:</li>
-</ol>
+Ejemplo (PowerShell en Windows):
 
-<pre># Clave para utilizar la Tripadvisor Content API
-TRIPADVISOR_API_KEY=TU_CLAVE_DE_TRIPADVISOR
+```powershell
+$body = @{
+  user     = "Demo"
+  message  = "Quiero un viaje de 2 días a Palma de Mallorca"
+  convo_id = ""
+} | ConvertTo-Json
 
-# Token de Notion para operaciones básicas
-NOTION_API_KEY=TU_TOKEN_DE_NOTION
-# o bien:
-# NOTION_TOKEN=TU_TOKEN_DE_NOTION
+curl.exe -s -X POST "http://127.0.0.1:8000/chat/" `
+  -H "Content-Type: application/json" `
+  --data-raw $body
+```
 
-# Token de tu integración de Notion para el servidor MCP
-NOTION_MCP_TOKEN=TU_TOKEN_DE_NOTION_MCP
-</pre>
+---
 
-<ol start="3">
-  <li><strong>Verifica la instalación</strong> ejecutando el servidor de Tripadvisor y el agente Notion (ver siguiente sección).</li>
-</ol>
+## 🪵 6) Ver logs
 
-<hr>
+**Últimas líneas de todos los servicios:**
 
-<h2>🚀 Cómo ejecutar el prototipo</h2>
+```bash
+docker compose logs --tail=200
+```
 
-<h3>1️⃣ Iniciar el servidor MCP de Tripadvisor</h3>
+**Un servicio concreto:**
 
-<p>El servidor ofrece las herramientas MCP para la API de Tripadvisor. Para ejecutarlo en modo consola (<code>stdio</code>):</p>
+```bash
+docker compose logs --tail=200 backend
+docker compose logs --tail=200 flights
+docker compose logs --tail=200 destinations
+docker compose logs --tail=200 hotels
+docker compose logs --tail=200 calc
+docker compose logs --tail=200 frontend
+```
 
-<pre>python main.py</pre>
+**Seguimiento en vivo:**
 
-<p>El script imprimirá la configuración cargada (ocultando la clave de API) y quedará a la espera de comandos del ADK.</p>
+```bash
+docker compose logs -f backend
+```
 
-<h3>2️⃣ Ejecutar el agente de Notion</h3>
+**Buscar errores comunes (Windows):**
 
-<p>Para lanzar el agente que se conecta a Notion a través de su MCP, ejecuta:</p>
+```bash
+docker compose logs backend | findstr /I "ERROR FALLBACK connect timeout refused"
+```
 
-<pre>python agent.py</pre>
+---
 
-<p>Este agente utiliza <code>npx</code> para arrancar el servidor MCP oficial de Notion. Asegúrate de tener Node.js y <code>npx</code> disponibles.  
-En Windows, puedes ajustar la ruta a <code>NPX_PATH</code> dentro del código.</p>
+## 🧰 7) Problemas típicos y solución rápida
 
-<h3>3️⃣ Ejemplo de uso</h3>
+- ❌ **El backend intenta llamar a `127.0.0.1` desde Docker**
+  - Este repo ya trae agentes con defaults a `flights:`, `destinations:`, `hotels:`.
+  - Comprueba en logs del backend que veas mensajes como:
+    ```
+    DestinationAgent conectado a: http://destinations:8773
+    FlightAgent conectado a: http://flights:8771
+    ```
 
-<ol>
-  <li>Con el servidor de Tripadvisor en marcha, inicia el agente de Notion.</li>
-  <li>El agente te pedirá una consulta, por ejemplo: “Busca hoteles en Barcelona”.</li>
-  <li>El agente invocará la herramienta <code>search_locations</code> del servidor de Tripadvisor, interpretará la respuesta y creará una página en Notion con la información relevante.</li>
-  <li>En tu espacio de Notion aparecerá una nueva página con los resultados estructurados automáticamente.</li>
-</ol>
+- ⚠️ **Aviso: `WEATHER_API_KEY` no definida**
+  - Es opcional. Si quieres quitar el warning, añade la clave en tu `.env`.
 
-<p>Este flujo demuestra cómo integrar distintos servicios para construir un asistente de viaje. En proyectos más amplios podrían añadirse agentes adicionales (reservas, itinerarios, gastos, etc.).</p>
+---
 
-<hr>
+## 💻 8) Desarrollo local (sin Docker)
 
-<h2>📁 Estructura de archivos</h2>
+1. Levanta los MCPs individualmente con `uvicorn` (puertos 8770-8773).  
+2. Crea `backend/.env` apuntando a `http://localhost:877x`.  
+3. Instala dependencias y ejecuta:
 
-<pre>├── agent.py         # Configura el agente del ADK para interactuar con Notion
-├── main.py          # Entrada para arrancar el servidor MCP de Tripadvisor via stdio
-├── server.py        # Implementación de las herramientas MCP para Tripadvisor
-├── prompt.py        # Instrucciones del agente Notion
-├── .env             # Variables de entorno (no se incluye en el repositorio público)
-└── README.md        # Este documento
-</pre>
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   uvicorn main:app --host 0.0.0.0 --port 8000
+   ```
 
-<hr>
+---
 
-<h2>🧩 Consideraciones finales</h2>
+Hecho con ❤️ para que lo arranques y pruebes en minutos.
 
-<p>
-Este prototipo es una <strong>demostración académica</strong>. No está optimizado para producción ni incluye medidas de seguridad completas.  
-Su objetivo es explorar la <strong>viabilidad</strong> de un sistema multiagente que orqueste servicios heterogéneos para asistir en la planificación de viajes.
-</p>
+---
 
-<p>
-Para el TFM se plantea ampliar la arquitectura con nuevos agentes (reservas, itinerarios, gastos, alertas en tiempo real, etc.) y profundizar en la coordinación, perfiles de usuario y monitorización dinámica.
-</p>
-
-<p>
-Esperamos que este repositorio te sirva como punto de partida para explorar el fascinante mundo de los sistemas multiagente aplicados a la gestión de viajes.
-</p>
-
-<footer>
-© 2025 — Proyecto de TFM: Sistema Multiagente para la Gestión de Viajes
-</footer>
-
-</body>
-</html>
+### 📘 Consejo adicional
+> Si quieres que este README se vea perfecto en GitHub, guárdalo como `README.md` en la raíz del repositorio.  
+> GitHub renderiza automáticamente enlaces, tablas y bloques de código como en este ejemplo.
