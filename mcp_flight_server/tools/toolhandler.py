@@ -40,6 +40,25 @@ class FlightSearchArgs(BaseModel):
     adults: int = Field(1, description="Número de pasajeros adultos")
     max_results: int = 5
 
+from datetime import datetime, timedelta
+
+def normalize_date(date_str: str) -> str:
+    """Ajusta la fecha para que nunca sea anterior a hoy."""
+    try:
+        # Convertimos la cadena a objeto fecha
+        user_date = datetime.strptime(date_str, "%Y-%m-%d").date()
+    except Exception:
+        # Si el formato no es válido, asignamos mañana
+        return (datetime.utcnow().date() + timedelta(days=1)).isoformat()
+
+    today = datetime.utcnow().date()
+    if user_date <= today:
+        # Si la fecha es pasada o hoy mismo, la movemos a mañana
+        user_date = today + timedelta(days=1)
+
+    return user_date.isoformat()
+
+
 # --- Lógica de Búsqueda Enriquecida ---
 def search_flights(args: FlightSearchArgs) -> Dict[str, Any]:
     token = get_access_token()
@@ -52,10 +71,10 @@ def search_flights(args: FlightSearchArgs) -> Dict[str, Any]:
     
     # ✅ Se añade el parámetro 'adults' a la llamada
     params = {
-        "originLocationCode": args.origin, 
+        "originLocationCode": args.origin,
         "destinationLocationCode": args.destination,
-        "departureDate": args.date, 
-        "adults": args.adults, 
+        "departureDate": normalize_date(args.date),
+        "adults": args.adults,
         "max": args.max_results,
         "currencyCode": "EUR"
     }
