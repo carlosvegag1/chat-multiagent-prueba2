@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<title>Chat Multi-Agente (Docker + Local) – Demo viaje</title>
+<style>
+  body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji"; line-height: 1.55; color: #111; max-width: 920px; margin: 40px auto; padding: 0 16px; }
+  code, pre { background: #f6f8fa; border-radius: 6px; }
+  pre { padding: 12px; overflow: auto; }
+  h1, h2, h3 { line-height: 1.25; }
+  .badge { display: inline-block; padding: 4px 8px; border-radius: 999px; background: #eef2ff; color: #3730a3; font-size: 12px; margin-right: 6px; }
+  .ok { color: #15803d; }
+  .warn { color: #b45309; }
+  .err { color: #b91c1c; }
+  details { background: #fafafa; border: 1px solid #eee; border-radius: 8px; padding: 10px 14px; margin: 12px 0; }
+  summary { cursor: pointer; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>Chat Multi-Agente (Docker + Local)</h1>
+
+<p>
+  <span class="badge">FastAPI</span>
+  <span class="badge">Next.js</span>
+  <span class="badge">Uvicorn</span>
+  <span class="badge">Docker Compose</span>
+  <span class="badge">Pydantic v2</span>
+</p>
+
+<p>Este repositorio despliega un demo de orquestación <strong>multi-agente</strong> para viajes: destinos, vuelos y hoteles. Incluye <em>backend</em> (FastAPI), <em>frontend</em> (Next.js) y tres micro-servicios “MCP” de ejemplo (destinations / flights / hotels).</p>
+
+<hr />
+
+<h2>🔥 Arranque ultra-rápido (Docker)</h2>
+<ol>
+  <li>Clona el repo y entra al directorio.</li>
+  <li>Opcional: crea <code>.env</code> a partir de <code>.env.example</code> si quieres personalizar claves (no es necesario para el mock local).</li>
+  <li>Ejecuta:
+    <pre><code>docker compose up -d --build</code></pre>
+  </li>
+</ol>
+
+<p><strong>Salud esperada:</strong></p>
+<ul>
+  <li>Frontend: <code>http://127.0.0.1:3000</code> (debe responder <span class="ok">200 OK</span>)</li>
+  <li>Backend API: <code>http://127.0.0.1:8000/docs</code> (<span class="ok">200 OK</span>)</li>
+  <li>Servicios MCP:
+    <ul>
+      <li>Calc: <code>http://127.0.0.1:8770/docs</code></li>
+      <li>Flights: <code>http://127.0.0.1:8771/docs</code></li>
+      <li>Hotels: <code>http://127.0.0.1:8772/docs</code></li>
+      <li>Destinations: <code>http://127.0.0.1:8773/docs</code></li>
+    </ul>
+  </li>
+</ul>
+
+<hr />
+
+<h2>🧪 Probar conversación (API)</h2>
+
+<p>La API tiene dos pasos típicos:</p>
+<ol>
+  <li>Crear conversación:
+<pre><code>POST http://127.0.0.1:8000/new_convo
+Body (JSON): { "user": "Demo" }</code></pre>
+Respuesta: <code>{ "convo_id": "20251017T185338_4fbf11", ... }</code>
+  </li>
+  <li>Enviar mensaje:
+<pre><code>POST http://127.0.0.1:8000/chat/
+Body (JSON):
+{
+  "user": "Demo",
+  "convo_id": "&lt;el_convo_id_devuelto&gt;",
+  "message": "Quiero un viaje de 2 días a Palma de Mallorca"
+}</code></pre>
+  </li>
+</ol>
+
+<p><em>Tip:</em> Puedes usar <code>curl</code>, Postman o la UI del frontend.</p>
+
+<hr />
+
+<h2>🔑 Claves y configuración</h2>
+<p>El backend lee variables de entorno (ver <code>.env.example</code>). <strong>No subas tus claves reales</strong>. Si ejecutas en Docker, los servicios se resuelven por nombre de contenedor (p.ej. <code>http://destinations:8773</code>). Si ejecutas fuera de Docker, usa <code>127.0.0.1</code>.</p>
+
+<table border="1" cellpadding="6" cellspacing="0">
+  <tr><th>Variable</th><th>Descripción</th><th>Ejemplo</th></tr>
+  <tr><td>OPENAI_API_KEY</td><td>Clave para normalizador LLM (opcional si usas solo mocks)</td><td>sk-...</td></tr>
+  <tr><td>AMADEUS_API_KEY / SECRET</td><td>Credenciales Amadeus (modo test)</td><td>...</td></tr>
+  <tr><td>WEATHER_API_KEY</td><td>Clima (opcional)</td><td>...</td></tr>
+  <tr><td>MCP_DESTINATION_URL</td><td>Endpoint dest (local)</td><td>http://127.0.0.1:8773</td></tr>
+  <tr><td>MCP_FLIGHT_URL</td><td>Endpoint vuelos (local)</td><td>http://127.0.0.1:8771</td></tr>
+  <tr><td>MCP_HOTEL_URL</td><td>Endpoint hoteles (local)</td><td>http://127.0.0.1:8772</td></tr>
+  <tr><td>MCP_TIMEOUT_SECONDS</td><td>Timeout global</td><td>60</td></tr>
+</table>
+
+<p><strong>Autocorrección Docker:</strong> si el backend corre en contenedor y detecta <code>localhost</code> / <code>127.0.0.1</code> en estas URLs, las reescribe automáticamente a <code>http://destinations:8773</code>, <code>http://flights:8771</code>, <code>http://hotels:8772</code>.</p>
+
+<hr />
+
+<h2>🧱 Arquitectura</h2>
+<ul>
+  <li><strong>frontend/</strong> – Next.js 15 (UI mínima).</li>
+  <li><strong>backend/</strong> – FastAPI + Uvicorn + Pydantic v2.</li>
+  <li><strong>mcp_*/</strong> – microservicios de ejemplo (destinations, flights, hotels, calc).</li>
+  <li><strong>docker-compose.yml</strong> – orquestación de todo.</li>
+</ul>
+
+<hr />
+
+<h2>🛠️ Comandos útiles</h2>
+<pre><code># levantar todo
+docker compose up -d --build
+
+# ver estado
+docker compose ps
+
+# logs de un servicio
+docker compose logs --tail=120 backend
+docker compose logs --tail=120 frontend
+docker compose logs --tail=120 flights
+docker compose logs --tail=120 hotels
+docker compose logs --tail=120 destinations
+
+# apagar
+docker compose down
+</code></pre>
+
+<hr />
+
+<h2>🩺 Solución de problemas</h2>
+<ul>
+  <li><strong>Backend reiniciando</strong>: mira <code>docker compose logs backend</code>. Si ves <em>SyntaxError</em>, revisa <code>backend/app/agents/*.py</code>.</li>
+  <li><strong>FALLBACK destinos/vuelos</strong>: suele ser por URL apuntando a <code>127.0.0.1</code> dentro del contenedor. Con la autocorrección ya queda fijo, pero valida que los servicios MCP respondan en <code>/docs</code>.</li>
+  <li><strong>Claves</strong>: si usas integraciones reales, define <code>OPENAI_API_KEY</code> y/o Amadeus. No las publiques.</li>
+</ul>
+
+<hr />
+
+<h2>📄 Licencia</h2>
+<p>MIT – libre para usar, modificar y compartir. Agradecimientos bienvenidos 💙</p>
+
+</body>
+</html>
